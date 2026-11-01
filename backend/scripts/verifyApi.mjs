@@ -37,6 +37,10 @@ try {
   const admin = await User.create({ name: 'Campus Admin', email: 'admin@campus.test', password: await hashPassword('AdminPass123'), role: 'admin' });
   const adminLogin = await request('/auth/login', { method: 'POST', body: JSON.stringify({ email: admin.email, password: 'AdminPass123' }) });
   assert.equal(adminLogin.status, 200);
+  const invalidLogin = await request('/auth/login', { method: 'POST', body: JSON.stringify({ email: admin.email, password: 'WrongPass123' }) });
+  assert.equal(invalidLogin.status, 401);
+  const missingLogin = await request('/auth/login', { method: 'POST', body: JSON.stringify({ email: admin.email }) });
+  assert.equal(missingLogin.status, 400);
 
   const department = await request('/departments', { method: 'POST', headers: auth(adminLogin.body.token), body: JSON.stringify({ name: 'Information Technology', code: 'IT' }) });
   assert.equal(department.status, 201);
