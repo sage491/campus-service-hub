@@ -1,0 +1,12 @@
+import { Link } from 'react-router-dom';
+import useRemote from '../hooks/useRemote';
+import { Empty, Loading } from '../components/Ui';
+import { useAuth } from '../context/AuthContext';
+
+export default function OverviewPage() {
+  const { user } = useAuth(); const { data, loading, error } = useRemote('/dashboard');
+  if (loading) return <Loading />; if (error) return <p className="error-message">{error}</p>;
+  const metrics = data.metrics;
+  const cards = user.role === 'admin' ? [['All requests', metrics.totalRequests], ['Active users', data.adminMetrics.users], ['Faculty members', data.adminMetrics.faculty], ['Feedback entries', data.adminMetrics.feedback]] : user.role === 'faculty' ? [['Assigned to me', metrics.totalRequests], ['Awaiting action', metrics.submitted], ['Department requests', data.departmentMetrics?.departmentRequests || 0], ['Department resolved', data.departmentMetrics?.departmentResolved || 0]] : [['My requests', metrics.totalRequests], ['Awaiting action', metrics.submitted], ['In progress', metrics.active], ['Resolved', metrics.resolved]];
+  return <><section className="page-heading"><div><h1>{user.role === 'admin' ? 'Campus operations' : user.role === 'faculty' ? 'Your service queue' : 'Welcome back'}</h1><p>{user.role === 'student' ? 'Track your requests and stay up to date with campus services.' : 'Live information from the Campus Service Hub.'}</p></div>{user.role === 'student' && <Link className="button button-primary" to="/requests">Submit a request</Link>}</section><div className="metric-grid">{cards.map(([label, value]) => <article className="metric" key={label}><span>{label}</span><b>{value}</b></article>)}</div><section className="split-section"><article className="panel"><div className="panel-heading"><h2>Request activity</h2><Link to="/requests">View requests</Link></div>{data.requestsByStatus.length ? <div className="bar-list">{data.requestsByStatus.map((item) => <div key={item._id}><span>{item._id}</span><i style={{ width: `${Math.max(8, item.count / Math.max(...data.requestsByStatus.map((row) => row.count)) * 100)}%` }} /><b>{item.count}</b></div>)}</div> : <Empty title="No request activity" detail="Requests will appear here once submitted." />}</article><article className="panel"><div className="panel-heading"><h2>Notifications</h2><Link to="/notifications">{metrics.unreadNotifications} unread</Link></div><p className="muted-copy">Use the notification center to see request updates and campus announcements.</p></article></section></>;
+}
