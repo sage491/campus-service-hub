@@ -15,9 +15,9 @@ export default function LoginPage() {
     event.preventDefault();
     setIsSubmitting(true);
     setStatus('');
-    try {
-      await authenticate('/auth/login', { email, password });
-    } catch (error) { setStatus(error.response?.data?.message || 'Unable to sign in. Please try again.'); } finally { setIsSubmitting(false); }
+    try { await authenticate('/auth/login', { email, password }); }
+    catch (error) { setStatus(error.response?.data?.message || 'Unable to sign in. Please try again.'); }
+    finally { setIsSubmitting(false); }
   }
 
   return (
@@ -27,12 +27,14 @@ export default function LoginPage() {
       <p>Use your Campus Service Hub account to continue.</p>
       <form onSubmit={signIn}>
         <label htmlFor="email">University email</label>
-        <input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@cumail.in" required />
+        <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@cumail.in" required autoComplete="email" />
         <label htmlFor="password">Password</label>
-        <input id="password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} required minLength="8" />
-        <button className="button button-primary" type="submit" disabled={isSubmitting}>{isSubmitting ? 'Signing in…' : 'Sign in'}</button>
+        <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength="8" autoComplete="current-password" />
+        <button className="button button-primary" type="submit" disabled={isSubmitting} style={{ marginTop: '0.25rem' }}>
+          {isSubmitting ? 'Signing in…' : 'Sign in'}
+        </button>
       </form>
-      {status && <p className="form-status" role="status">{status}</p>}
+      {status && <p className="form-status" role="alert">{status}</p>}
       <p className="auth-link">New student? <Link to="/register">Create your account</Link></p>
     </section>
   );
